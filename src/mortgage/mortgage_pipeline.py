@@ -1,16 +1,16 @@
 import numpy as np
 
-from src.mortgage_enums.interest_type import InterestType
-from src.mortgage_tracks.mortgage_track import MortgageTrack
+from src.mortgage.mortgage_enums.interest_type import InterestType
+from src.mortgage.mortgage_tracks.mortgage_track import MortgageTrack
 from itertools import zip_longest
 import numpy_financial as npf
 import matplotlib
-from src.mortgage_tracks.eligibility import Eligibility
-from src.mortgage_utils.mortgage_financial_utils import calculate_discount_factor
+from src.mortgage.mortgage_tracks.eligibility import Eligibility
+from src.mortgage.mortgage_utils.mortgage_financial_utils_il import calculate_discount_factor
 from typing import List, Dict, Optional
-from src.mortgage_enums.linkage_type import LinkageType
-from src.mortgage_utils.mortgage_plotter_util import *
-from src.mortgage_utils.mortgage_printer_util import plot_mortgage_monthly_payments
+from src.mortgage.mortgage_enums.linkage_type import LinkageType
+from src.mortgage.mortgage_utils.mortgage_plotter_util import *
+from src.mortgage.mortgage_utils.mortgage_printer_util import plot_mortgage_monthly_payments
 
 matplotlib.use('TkAgg')
 
@@ -35,7 +35,8 @@ class MortgagePipeline:
         - get_remain_balances(): Get a list of remaining balances across all tracks for specific time periods.
         - get_total_payment(): Get the total payment, which is the sum of total payments across all mortgage tracks.
         - calculate_highest_monthly_payment(): Calculate the highest monthly payment across all mortgage tracks.
-        - calculate_initial_monthly_payment(): Calculate the initial monthly payment, which is the sum of initial monthly payments across all tracks.
+        - calculate_initial_monthly_payment(): Calculate the initial monthly payment, which is the sum of initial monthly
+          payments across all tracks.
         - calculate_loan_yearly_irr(): Calculate the yearly internal rate of return (IRR) for the mortgage.
         - calculate_num_payments(): Calculate the maximum number of payments among all mortgage tracks.
     """
@@ -49,10 +50,20 @@ class MortgagePipeline:
         self.tracks = list(mortgage_tracks)
         self.total_initial_loan_amount = sum([track.initial_loan_amount for track in self.tracks])
 
-    def calculate_total_interest_payment(self):
+    def calculate_total_interest_payment(self) -> int:
+        """
+        Calculate the total interest payments over the loan term.
+
+        :return: The calculated total interest payments.
+        """
         return sum(self.get_interest_payments())
 
-    def calculate_linked_index_payment(self):
+    def calculate_linked_index_payment(self) -> int:
+        """
+        Calculate the total payments related to linked index (excluding principal and interest).
+
+        :return: The calculated total linked index payments.
+        """
         return self.get_total_payment() - self.calculate_total_interest_payment() - self.total_initial_loan_amount
 
     def get_tracks_percentages_dic(self) -> Dict[MortgageTrack, float]:
@@ -68,7 +79,7 @@ class MortgagePipeline:
     def get_principal_payments(self) -> List[float]:
         """
         Get a list of principal payments, where each element represents the sum of principal payments across all tracks
-        for a specific time period.
+        for a monthly time period.
 
         :return: A list of principal payments.
         :rtype: List[float]
@@ -79,15 +90,18 @@ class MortgagePipeline:
 
     def get_annual_principal_payments(self) -> List[float]:
         """
-        TODO
-        :return:
+        Get a list of principal payments, where each element represents the sum of principal payments across all tracks
+        for a yearly time period.
+
+        :return: A list of principal payments.
+        :rtype: List[float]
         """
         return list(np.array(self.get_principal_payments()).reshape(-1, 12).sum(axis=1))
 
     def get_interest_payments(self) -> List[float]:
         """
         Get a list of interest payments, where each element represents the sum of interest payments across all tracks
-        for a specific time period.
+        for a monthly time period.
 
         :return: A list of interest payments.
         :rtype: List[float]
@@ -98,8 +112,11 @@ class MortgagePipeline:
 
     def get_annual_interest_payments(self) -> List[float]:
         """
-        TODO
-        :return:
+        Get a list of interest payments, where each element represents the sum of interest payments across all tracks
+        for a yearly time period.
+
+        :return: A list of interest payments.
+        :rtype: List[float]
         """
         return list(np.array(self.get_interest_payments()).reshape(-1, 12).sum(axis=1))
 
@@ -118,16 +135,19 @@ class MortgagePipeline:
 
     def get_annual_payments(self) -> List[int]:
         """
-        TODO
-        :return:
+        Get a list of annual payments, where each element represents the sum of annual payments across all tracks
+        for a specific time period.
+
+        :return: A list of monthly payments.
+        :rtype: List[float]
         """
         return list(np.array(self.get_monthly_payments()).reshape(-1, 12).sum(axis=1))
 
 
-    def get_remain_balances(self) -> List[float]:
+    def get_remain_balances(self) -> List[int]:
         """
         Get a list of remaining balances, where each element represents the sum of remaining balances across all tracks
-        for a specific time period.
+        for a month time period.
 
         :return: A list of remaining balances.
         :rtype: List[float]
@@ -136,14 +156,17 @@ class MortgagePipeline:
         # Pad the lists with zeros and perform element-wise addition
         return [sum(x) for x in zip_longest(*remain_balances_list, fillvalue=0)]
 
-    def get_annual_remain_balances(self) -> List[float]:
+    def get_annual_remain_balances(self) -> List[int]:
         """
-        TODO:
-        :return:
+        Get a list of annual remaining balances, where each element represents the sum of remaining balances across all tracks
+        for a year time period.
+
+        :return: A list of remaining balances.
+        :rtype: List[float]
         """
         return [balance for i, balance in enumerate(self.get_remain_balances()) if i % 12 == 0]
 
-    def get_total_payment(self, months_to_exit: Optional[int] = None) -> float:
+    def get_total_payment(self, months_to_exit: Optional[int] = None) -> int:
         """
         Get the total payment, which is the sum of total payments across all mortgage tracks.
 
@@ -154,7 +177,7 @@ class MortgagePipeline:
             return sum([track.calculate_total_repayment() for track in self.tracks])
         return sum(self.get_monthly_payments()[:months_to_exit])
 
-    def calculate_highest_monthly_payment(self) -> float:
+    def calculate_highest_monthly_payment(self) -> int:
         """
         Calculate the highest monthly payment across all monthly payments.
 
@@ -228,19 +251,28 @@ class MortgagePipeline:
         """
         return sum([track.interest_rate * percentage for track, percentage in self.get_tracks_percentages_dic().items()])
 
-    def plot_interest_and_principal_payments(self):
+    def plot_interest_and_principal_payments(self) -> None:
         """
+        Plot the interest and principal payments over the loan term.
 
-        :return:
+        Uses the utility function `plot_principal_and_interest_payments` to create the plot.
+
+        :return: None
         """
         plot_principal_and_interest_payments(self.get_num_of_payments(), self.get_principal_payments(), self.get_interest_payments())
 
-    def plot_monthly_payments(self):
+    def plot_monthly_payments(self) -> None:
         """
+        Plot the monthly payments over the loan term.
 
-        :return:
+        Uses the utility function `plot_monthly_payments` to create the plot.
+
+        :return: None
         """
         plot_monthly_payments(self.get_num_of_payments(), self.get_monthly_payments())
+
+    def plot_remain_balances(self) -> None:
+        plot_remain_balances(self.get_remain_balances())
 
     def calculate_early_payment_fee(self, num_of_months: int, average_interest_in_early_payment: Dict[MortgageTrack.__class__, float]) -> int:
         """
@@ -307,6 +339,13 @@ class MortgagePipeline:
 
 
     def calculate_total_cost_of_borrowing(self, years_to_exit: Optional[int] = None, average_interest_in_early_payment: Optional[Dict[MortgageTrack, float]] = None) -> int:
+        """
+        Calculate the total cost of borrowing over the investment period.
+
+        :param years_to_exit: Optional. Number of years until exit. If not provided, calculates the total cost of borrowing until the end of the loan term.
+        :param average_interest_in_early_payment: Optional. Dictionary mapping MortgageTrack instances to their average interest rates during early payments.
+        :return: The calculated total cost of borrowing.
+        """
         if years_to_exit is None or average_interest_in_early_payment is None:
             return round(self.get_total_payment() - self.total_initial_loan_amount)
         else:

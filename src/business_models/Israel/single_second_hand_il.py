@@ -1,10 +1,15 @@
 from typing import List
 
-from src.real_estate_financial_model.single_house_israel_model import SingleHouseIsraelModel
+from src.business_models.Israel.single_house_israel_model import SingleHouseIsraelModel
 
 
 class SingleHouseSecondHandIL(SingleHouseIsraelModel):
     def calculate_total_expenses(self) -> int:
+        """
+        Calculate the total expenses over the investment period.
+
+        :return: The calculated total expenses.
+        """
         return (self.calculate_total_equity_needed_for_purchase() +
                 round(self.years_to_exit * self.calculate_annual_operating_expenses()) +
                 self.calculate_selling_expenses() +
@@ -13,6 +18,11 @@ class SingleHouseSecondHandIL(SingleHouseIsraelModel):
                 self.calculate_mortgage_remain_balance_in_exit())
 
     def calculate_annual_expenses_distribution(self) -> List[float]:
+        """
+        Calculate the annual expenses distribution over the investment period.
+
+        :return: A list of annual expenses distribution.
+        """
         annual_distribution_operating_expenses = [self.calculate_annual_operating_expenses() for _ in
                                                   range(self.years_to_exit)] + [0]
 

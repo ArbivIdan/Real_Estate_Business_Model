@@ -1,5 +1,5 @@
 import unittest
-from src.mortgage_tracks.prime import Prime
+from src.mortgage.mortgage_tracks.prime import Prime
 import numpy as np
 
 
@@ -53,7 +53,7 @@ class TestPrime(unittest.TestCase):
         # mock_irr.return_value = 0.04
         # Ensure that the calculated yearly IRR is as expected
         expected_irr = -4.81  # replace with the actual expected value
-        self.assertAlmostEqual(round(self.mortgage_track.calculate_loan_yearly_irr(), 2), expected_irr, places=1)
+        self.assertAlmostEqual(round(self.mortgage_track.calculate_loan_annual_irr(), 2), expected_irr, places=1)
 
     def test_calculate_highest_monthly_payment(self):
         # Ensure that the calculated highest monthly payment is as expected

@@ -1,8 +1,7 @@
 import unittest
-from src.mortgage_pipeline import MortgagePipeline
-from src.mortgage_tracks.constant_not_linked import ConstantNotLinked
-from src.mortgage_tracks.constant_linked import ConstantLinked
-from unittest.mock import patch
+from src.mortgage.mortgage_pipeline import MortgagePipeline
+from src.mortgage.mortgage_tracks.constant_not_linked import ConstantNotLinked
+from src.mortgage.mortgage_tracks.constant_linked import ConstantLinked
 import numpy as np
 
 

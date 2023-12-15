@@ -2,14 +2,14 @@ from typing import Optional, List, Dict, Union
 import matplotlib.pyplot as plt
 import numpy as np
 
-from src.investors.real_estate_investment_type import RealEstateInvestmentType
+from src.investors.Israel.real_estate_investment_type import RealEstateInvestmentType
 from src.investors.real_estate_investor import RealEstateInvestor
 from src.investors.real_estate_investors_portfolio import RealEstateInvestorsPortfolio
-from src.mortgage_pipeline import MortgagePipeline
-from src.mortgage_tracks.constant_not_linked import ConstantNotLinked
-from src.mortgage_tracks.mortgage_track import MortgageTrack
-from src.real_estate_financial_model.real_estate_property import RealEstateProperty
-from src.real_estate_financial_model.single_house_israel_model import SingleHouseIsraelModel
+from src.mortgage.mortgage_pipeline import MortgagePipeline
+from src.mortgage.mortgage_tracks.constant_not_linked import ConstantNotLinked
+from src.mortgage.mortgage_tracks.mortgage_track import MortgageTrack
+from src.business_models.real_estate_property import RealEstateProperty
+from src.business_models.Israel.single_house_israel_model import SingleHouseIsraelModel
 
 
 class SingleFromConstructorIL(SingleHouseIsraelModel):
@@ -67,9 +67,20 @@ class SingleFromConstructorIL(SingleHouseIsraelModel):
         self.construction_input_index_annual_growth = construction_input_index_annual_growth
 
     def calculate_total_equity_needed_for_purchase(self) -> int:
+        """
+        Calculate the total equity needed for the property purchase.
+
+        :return: The total equity needed for the purchase.
+        """
         return super().calculate_total_equity_needed_for_purchase() + self.calculate_constructor_index_linked_compensation()
 
     def calculate_constructor_index_linked_compensation(self, years_until_key_reception: Optional[int] = None) -> int:
+        """
+        Calculate the compensation linked to the construction index.
+
+        :param years_until_key_reception: Optional. Number of years until key reception. If not provided, uses the default value.
+        :return: The calculated compensation linked to the construction index.
+        """
         if self.years_until_key_reception <= 0:
             return 0
         if years_until_key_reception is None:
@@ -82,6 +93,11 @@ class SingleFromConstructorIL(SingleHouseIsraelModel):
                 np.power((1 + self.construction_input_index_annual_growth / 100), years_until_key_reception) - 1))
 
     def calculate_equity_payments(self) -> List[int]:
+        """
+        Calculate the equity payments over the investment period.
+
+        :return: A list of calculated equity payments.
+        """
         equity_for_house_purchase = round(
             (self.equity_required_by_percentage / 100) * self.real_estate_property.purchase_price)
         equity_payments = [round(equity_for_house_purchase * self.contractor_payment_distribution[i]) for i in
@@ -92,14 +108,29 @@ class SingleFromConstructorIL(SingleHouseIsraelModel):
         return equity_payments
 
     def calculate_mortgage_remain_balance_in_exit(self) -> int:
+        """
+        Calculate the remaining mortgage balance at the exit.
+
+        :return: The remaining mortgage balance at the exit.
+        """
         mortgage_done = self.mortgage.get_num_of_payments() <= (self.years_to_exit * 12)
         return 0 if mortgage_done else round(self.mortgage.get_remain_balances()[(self.years_to_exit - self.years_until_key_reception) * 12])
 
     def calculate_total_revenue(self) -> int:
+        """
+        Calculate the total revenue over the investment period.
+
+        :return: The calculated total revenue.
+        """
         return self.estimate_sale_price() + (
                 self.years_to_exit - self.years_until_key_reception) * self.calculate_annual_rent_income()
 
     def calculate_total_expenses(self) -> int:
+        """
+        Calculate the total expenses over the investment period.
+
+        :return: The calculated total expenses.
+        """
         return (self.calculate_total_equity_needed_for_purchase() +
                 round((
                               self.years_to_exit - self.years_until_key_reception) * self.calculate_annual_operating_expenses()) +
@@ -110,29 +141,22 @@ class SingleFromConstructorIL(SingleHouseIsraelModel):
                 self.calculate_mortgage_remain_balance_in_exit())
 
     def calculate_annual_revenue_distribution(self) -> List[int]:
+        """
+        Calculate the annual revenue distribution over the investment period.
+
+        :return: A list of annual revenue distribution.
+        """
         return [0] * self.years_until_key_reception + \
                [self.calculate_annual_rent_income() for _ in
                 range(self.years_to_exit - self.years_until_key_reception)] + \
                [self.estimate_sale_price()]
 
-    def plot_annual_irr_vs_construction_input_index_annual_growth(self):
-        x_s = list(np.arange(0, 5.5, 0.5))
-        y_s = []
-        for x in x_s:
-            self.construction_input_index_annual_growth = x
-            y_s.append(self.calculate_annual_irr())
-
-        plt.plot(x_s, y_s)
-        plt.xlabel('Construction Input Index Annual Growth')
-        plt.ylabel('Yearly IRR')
-        plt.title('Yearly IRR vs Construction Input Index Annual Growth')
-        for x, y in zip(x_s, y_s):
-            plt.text(x, y, f'({x:.2f}%, {y :.2f}%)', ha='left', va='bottom')
-
-        plt.legend()
-        plt.show()
-
     def calculate_annual_expenses_distribution(self) -> List[float]:
+        """
+        Calculate the annual expenses distribution over the investment period.
+
+        :return: A list of annual expenses distribution.
+        """
         annual_distribution_operating_expenses = [0 if i < self.years_until_key_reception else self.calculate_annual_operating_expenses() for i in range(self.years_to_exit)] + [0]
 
         # TODO: I assume here that the mortgage is only taken upon receiving a key, additional scenarios must be created
@@ -161,8 +185,31 @@ class SingleFromConstructorIL(SingleHouseIsraelModel):
         return annual_distribution_expenses
 
     def get_annual_property_remain_balances(self):
+        """
+        Get the annual property remaining balances.
+
+        :return: A list of annual property remaining balances.
+        """
         return [self.mortgage.get_annual_remain_balances()[0]] * self.years_until_key_reception\
                + [round(balance) for balance in self.mortgage.get_annual_remain_balances()]
+
+    def plot_annual_irr_vs_construction_input_index_annual_growth(self):
+        x_s = list(np.arange(0, 5.5, 0.5))
+        y_s = []
+        for x in x_s:
+            self.construction_input_index_annual_growth = x
+            y_s.append(self.calculate_annual_irr())
+
+        plt.plot(x_s, y_s)
+        plt.xlabel('Construction Input Index Annual Growth')
+        plt.ylabel('Yearly IRR')
+        plt.title('Yearly IRR vs Construction Input Index Annual Growth')
+        for x, y in zip(x_s, y_s):
+            plt.text(x, y, f'({x:.2f}%, {y :.2f}%)', ha='left', va='bottom')
+
+        plt.legend()
+        plt.show()
+
 
 
 
@@ -180,7 +227,7 @@ if __name__ == "__main__":
 
     mortgage = MortgagePipeline(ConstantNotLinked(interest_rate=3.5 / 100,
                                                   num_payments=360,
-                                                  initial_loan_amount=0.6 * property.purchase_price,
+                                                  initial_loan_amount=round(0.6 * property.purchase_price),
                                                   interest_only_period=0 * 12))
 
     model = SingleFromConstructorIL(investors_portfolio=investors_portfolio,
@@ -209,15 +256,7 @@ if __name__ == "__main__":
                             management_fees_percentage=0
                             )
 
-    print(model.estimate_property_value_with_noi())
-    # print(model.calculate_annual_cash_flow_distribution())
-    # print(model.calculate_net_profit())
-    print(model.plot_annual_irr_vs_purchase_price())
-    # model.plot_property_equity_vs_years()
-    # print(round(model.calculate_net_profit() / 1000000, 2))
-    # print(model.calculate_annual_noi() / (model.calculate_annual_cap_rate() / 100))
-    # model.plot_cash_flow_vs_equity_percentage()
-    # model.plot_irr_vs_equity_percentage()
+    investors_portfolio.plot_maximum_property_price_vs_total_available_equity()
     # 27820
     print(f"Price per meter: {model.calculate_price_per_meter()}")
     print(f"Loan to cost: {model.calculate_loan_to_cost()}")

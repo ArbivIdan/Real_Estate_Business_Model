@@ -53,7 +53,7 @@ def calculate_discount_factor(num_of_months: int, eligibility_present: bool) -> 
     return 1.0
 
 
-def calculate_maximum_loan_amount(num_payments: int, monthly_payment: int) -> float:
+def calculate_maximum_loan_amount(num_payments: int, monthly_payment: int) -> int:
     # Given values
     # TODO: Need to check how this interest selected, and need to fetch the avg interest to fill this parameter
     interest_rate = 0.05  # 5%
@@ -62,40 +62,4 @@ def calculate_maximum_loan_amount(num_payments: int, monthly_payment: int) -> fl
     return npf.pv(interest_rate / 12, num_payments, -monthly_payment)
 
 
-if __name__ == "__main__":
-    pass
-    # early_payment_after = 24
-    # R = 4 / 100
-    # C = 4 / 100
-    # A = 2 / 100
-    # loan = 100_000
-    # period = 360
-    # n = -1
-    # constant_not_linked = ConstantNotLinked(C, period, loan, [0 for _ in range(period)], [0 for _ in range(period)])
-    # B = constant_not_linked.monthly_payments
-    # # 26344 Should be printed
-    # print(calculate_early_payment_fee(A,B[early_payment_after:],C,R,n))
-    #
-    # early_payment_after = 24
-    # R = 3 / 100
-    # C = 4 / 100
-    # A = 2 / 100
-    # loan = 100_000
-    # period = 360
-    # n = -1
-    # constant_not_linked = ConstantNotLinked(C, period, loan, [0 for _ in range(period)], [0 for _ in range(period)])
-    # B = constant_not_linked.monthly_payments
-    # # 14313 Should be printed
-    # print(calculate_early_payment_fee(A,B[early_payment_after:],C,R,n))
-    #
-    # early_payment_after = 24
-    # R = 4 / 100
-    # C = 4 / 100
-    # A = 2 / 100
-    # loan = 100_000
-    # period = 360
-    # n = 36
-    # constant_not_linked = ConstantNotLinked(C, period, loan, [0 for _ in range(period)], [0 for _ in range(period)])
-    # B = constant_not_linked.monthly_payments
-    # # 5446 Should be printed
-    # print(calculate_early_payment_fee(A,B[early_payment_after:],C,R,n))
+

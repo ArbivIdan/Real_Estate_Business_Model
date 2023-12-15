@@ -1,5 +1,5 @@
-from src.real_estate_financial_model.real_estate_financial_utils import debt_service_coverage_ratio, debt_to_income
-from src.real_estate_financial_model.single_house_model import SingleHouseModel
+from src.business_models.real_estate_financial_utils import debt_service_coverage_ratio, debt_to_income
+from src.business_models.single_house_model import SingleHouseModel
 from abc import ABC
 
 
