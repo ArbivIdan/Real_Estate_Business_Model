@@ -98,9 +98,7 @@ class SingleHouseModel(ABC):
         """
         # This method assumes the interest is constant
         monthly_revenues = self.real_estate_property.monthly_rent_income
-        print(f"Monthly revenues: {monthly_revenues}")
         monthly_expenses = self.calculate_monthly_operating_expenses() + self.mortgage.calculate_initial_monthly_payment()
-        print(f"monthly_expenses: {monthly_expenses}")
         return monthly_revenues - monthly_expenses
 
     def calculate_net_annual_cash_flow(self) -> int:
@@ -529,7 +527,7 @@ class SingleHouseModel(ABC):
 
         :return: A list of annual property remaining balances.
         """
-        return [round(balance) for balance in self.mortgage.get_annual_remain_balances()]
+        return [round(balance) for balance in self.mortgage.get_annual_remain_balances()][:self.years_to_exit]
 
     # Plotting Methods
 
@@ -630,9 +628,7 @@ class SingleHouseModel(ABC):
         x_s = [i for i in range(1, year_to_exit + 2)]
         annual_estimated_property_value = self.calculate_annual_estimated_property_value(year_to_exit,
                                                                                          annual_appreciation_percentage)
-        print(annual_estimated_property_value)
         loan_remain_balance = self.get_annual_property_remain_balances()
-        print(loan_remain_balance)
         property_equity = [a - b for a, b in zip(annual_estimated_property_value, loan_remain_balance)]
         property_equity_in_years = [round(equity / 1_000_000, 2) for equity in property_equity[:year_to_exit + 1]]
         plt.plot(x_s, property_equity_in_years)

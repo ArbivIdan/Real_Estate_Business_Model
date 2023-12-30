@@ -73,7 +73,7 @@ def cash_of_cash(net_annual_cash_flow: int, total_equity_needed_for_purchase: in
 
     :return: The Cash-on-Cash return as a percentage.
     """
-    return net_annual_cash_flow / total_equity_needed_for_purchase
+    return round(net_annual_cash_flow / total_equity_needed_for_purchase,2)
 
 
 def return_on_investment(net_profit: int, total_equity_needed_for_purchase: int) -> float:
@@ -85,7 +85,7 @@ def return_on_investment(net_profit: int, total_equity_needed_for_purchase: int)
 
     :return: The ROI as a percentage.
     """
-    return net_profit / total_equity_needed_for_purchase
+    return round(net_profit / total_equity_needed_for_purchase, 2)
 
 
 def noi(operating_income: int, operating_expenses: int) -> int:

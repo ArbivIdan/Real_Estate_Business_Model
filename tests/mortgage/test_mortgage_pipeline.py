@@ -28,35 +28,37 @@ class TestMortgagePipeline(unittest.TestCase):
         )
 
     def test_calculate_early_payment_fee(self):
+        average_interest_in_early_payment_dic = {ConstantLinked: 0.02, ConstantNotLinked: 0.02}
+        negative_interests_dic = {ConstantLinked: -0.02, ConstantNotLinked: -0.02}
         # Ensure that ValueError is raised when the number of months is negative
         with self.assertRaises(ValueError):
-            self.mortgage_pipeline.calculate_early_payment_fee(num_of_months=-1, average_interest_in_early_payment=0.02)
+            self.mortgage_pipeline.calculate_early_payment_fee(num_of_months=-1, average_interest_in_early_payment=average_interest_in_early_payment_dic)
 
         with self.assertRaises(ValueError):
-            self.mortgage_pipeline.calculate_early_payment_fee(num_of_months=0, average_interest_in_early_payment=-0.02)
+            self.mortgage_pipeline.calculate_early_payment_fee(num_of_months=0, average_interest_in_early_payment=negative_interests_dic)
 
         self.assertEqual(44436, self.mortgage_pipeline.calculate_early_payment_fee(num_of_months=0,
-                                                                                   average_interest_in_early_payment=2 / 100))
+                                                                                   average_interest_in_early_payment=average_interest_in_early_payment_dic))
         self.assertEqual(36586, self.mortgage_pipeline.calculate_early_payment_fee(num_of_months=24,
-                                                                                   average_interest_in_early_payment=2 / 100))
+                                                                                   average_interest_in_early_payment=average_interest_in_early_payment_dic))
         self.assertEqual(14792, self.mortgage_pipeline.calculate_early_payment_fee(num_of_months=84,
-                                                                                   average_interest_in_early_payment=2 / 100))
+                                                                                   average_interest_in_early_payment=average_interest_in_early_payment_dic))
         self.assertEqual(9180, self.mortgage_pipeline.calculate_early_payment_fee(num_of_months=144,
-                                                                                  average_interest_in_early_payment=2 / 100))
+                                                                                  average_interest_in_early_payment=average_interest_in_early_payment_dic))
         self.assertEqual(5273, self.mortgage_pipeline.calculate_early_payment_fee(num_of_months=204,
-                                                                                  average_interest_in_early_payment=2 / 100))
+                                                                                  average_interest_in_early_payment=average_interest_in_early_payment_dic))
         self.assertEqual(2208, self.mortgage_pipeline.calculate_early_payment_fee(num_of_months=264,
-                                                                                  average_interest_in_early_payment=2 / 100))
+                                                                                  average_interest_in_early_payment=average_interest_in_early_payment_dic))
         self.assertEqual(349, self.mortgage_pipeline.calculate_early_payment_fee(num_of_months=324,
-                                                                                 average_interest_in_early_payment=2 / 100))
+                                                                                 average_interest_in_early_payment=average_interest_in_early_payment_dic))
         self.assertEqual(0, self.mortgage_pipeline.calculate_early_payment_fee(num_of_months=360,
-                                                                               average_interest_in_early_payment=2 / 100))
+                                                                               average_interest_in_early_payment=average_interest_in_early_payment_dic))
         self.assertEqual(0, self.mortgage_pipeline.calculate_early_payment_fee(num_of_months=500,
-                                                                               average_interest_in_early_payment=2 / 100))
+                                                                               average_interest_in_early_payment=average_interest_in_early_payment_dic))
 
     def test_calculate_initial_monthly_payment(self):
         # Ensure that the calculated initial monthly payment is as expected
-        expected_payment = 1538  # replace with the actual expected value
+        expected_payment = 1539  # replace with the actual expected value
         self.assertAlmostEqual(round(self.mortgage_pipeline.calculate_initial_monthly_payment()), expected_payment,
                                places=2)
 

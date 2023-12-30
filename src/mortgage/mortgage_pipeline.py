@@ -120,7 +120,6 @@ class MortgagePipeline:
         """
         return list(np.array(self.get_interest_payments()).reshape(-1, 12).sum(axis=1))
 
-
     def get_monthly_payments(self) -> List[int]:
         """
         Get a list of monthly payments, where each element represents the sum of monthly payments across all tracks
@@ -142,7 +141,6 @@ class MortgagePipeline:
         :rtype: List[float]
         """
         return list(np.array(self.get_monthly_payments()).reshape(-1, 12).sum(axis=1))
-
 
     def get_remain_balances(self) -> List[int]:
         """
@@ -195,14 +193,14 @@ class MortgagePipeline:
         """
         return np.ceil(sum([track.calculate_initial_monthly_payment() for track in self.tracks]))
 
-    def calculate_loan_yearly_irr(self):
+    def calculate_loan_yearly_irr(self, months_to_exit: int = 360) -> float:
         """
         Calculate the yearly internal rate of return (IRR) for the mortgage.
         Yearly IRR = Month IRR * 12 Months * 100 (Percentage) * -1 (Bank Investment)
         :return: The yearly IRR for the mortgage.
         :rtype: float (percentage)
         """
-        monthly_cash_flow = [-self.total_initial_loan_amount] + self.get_monthly_payments()
+        monthly_cash_flow = [-self.total_initial_loan_amount] + self.get_monthly_payments()[:months_to_exit]
         return npf.irr(monthly_cash_flow) * 12 * 100 * -1
 
     def get_num_of_payments(self) -> int:
@@ -274,7 +272,7 @@ class MortgagePipeline:
     def plot_remain_balances(self) -> None:
         plot_remain_balances(self.get_remain_balances())
 
-    def calculate_early_payment_fee(self, num_of_months: int, average_interest_in_early_payment: Dict[MortgageTrack.__class__, float]) -> int:
+    def calculate_early_payment_fee(self, num_of_months: int, average_interest_in_early_payment: Optional[Dict[MortgageTrack.__class__, float]] = None) -> int:
         """
         Calculate the early payment fee for the mortgage after a specified number of months.
 
@@ -284,6 +282,8 @@ class MortgagePipeline:
         :return: The early payment fee calculated based on the total fee for all mortgage tracks,
             considering the eligibility and discount factor.
         """
+        if average_interest_in_early_payment is None:
+            average_interest_in_early_payment = {track.__class__: track.interest_rate for track in self.tracks}
         #TODO : test this
         full_early_payment_fee = sum(track.calculate_early_payment_fee(num_of_months, average_interest_in_early_payment[track.__class__]) for track in self.tracks)
         eligibility_present = any(isinstance(track, Eligibility) for track in self.tracks)
@@ -315,7 +315,6 @@ class MortgagePipeline:
                 LinkageType.NotLinked: sum([percentage for track, percentage in self.get_tracks_percentages_dic().items() if track in LinkageType.NotLinked.value]),
                 LinkageType.Prime: sum([percentage for track, percentage in self.get_tracks_percentages_dic().items() if track in LinkageType.Prime.value])}
 
-
     def calculate_interest_type_segmentation(self) -> Dict[InterestType, float]:
         """
         Calculate the segmentation of mortgage tracks based on their interest type.
@@ -336,7 +335,6 @@ class MortgagePipeline:
         return {InterestType.Constant: sum([percentage for track, percentage in self.get_tracks_percentages_dic().items() if any(isinstance(track, class_type) for class_type in InterestType.Constant.value)]),
                 InterestType.NotConstant: sum([percentage for track, percentage in self.get_tracks_percentages_dic().items() if any(isinstance(track, class_type) for class_type in InterestType.NotConstant.value)]),
                 InterestType.Prime: sum([percentage for track, percentage in self.get_tracks_percentages_dic().items() if track in any(isinstance(track, class_type) for class_type in InterestType.Prime.value)])}
-
 
     def calculate_total_cost_of_borrowing(self, years_to_exit: Optional[int] = None, average_interest_in_early_payment: Optional[Dict[MortgageTrack, float]] = None) -> int:
         """

@@ -70,7 +70,6 @@ class MortgageTrack(ABC):
         """
         return self._calculate_payments()[5]
 
-
     def calculate_initial_monthly_payment(self) -> int:
         #TODO: Check how its work with the interest only period
         return npf.pmt(self.interest_rate / MortgageConstants.MONTHS_IN_YEAR, self.num_payments, -self.initial_loan_amount)
@@ -147,8 +146,8 @@ class MortgageTrack(ABC):
             interest_rate = interest_rate * (1 + self.forecasting_interest_rate[period - 1])
 
             # Calculate interest and principal payments for the current period
-            interest_payment = remaining_balance * monthly_interest
-            principal_payment = npf.pmt(monthly_interest, num_payments - (period - 1),
+            interest_payment = remaining_balance * interest_rate / 12
+            principal_payment = npf.pmt(interest_rate / 12, num_payments - (period - 1),
                                         -remaining_balance) - interest_payment
             remaining_balance -= principal_payment
 

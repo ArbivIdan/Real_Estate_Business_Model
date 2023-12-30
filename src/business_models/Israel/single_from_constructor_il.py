@@ -89,8 +89,7 @@ class SingleFromConstructorIL(SingleHouseIsraelModel):
                 1 - ((self.equity_required_by_percentage * self.contractor_payment_distribution[0]) / 100))
         # TODO: covert to consts. 0.4 is the percentage of the remain balance that is linked (by law)
         remain_balance_linked_amount = 0.4 * remain_balance_for_purchase
-        return round(remain_balance_linked_amount * (
-                np.power((1 + self.construction_input_index_annual_growth / 100), years_until_key_reception) - 1))
+        return round(remain_balance_linked_amount * (np.power((1 + self.construction_input_index_annual_growth / 100), years_until_key_reception) - 1))
 
     def calculate_equity_payments(self) -> List[int]:
         """
@@ -191,7 +190,7 @@ class SingleFromConstructorIL(SingleHouseIsraelModel):
         :return: A list of annual property remaining balances.
         """
         return [self.mortgage.get_annual_remain_balances()[0]] * self.years_until_key_reception\
-               + [round(balance) for balance in self.mortgage.get_annual_remain_balances()]
+               + [round(balance) for balance in self.mortgage.get_annual_remain_balances()][:self.years_to_exit - self.years_until_key_reception + 1]
 
     def plot_annual_irr_vs_construction_input_index_annual_growth(self):
         x_s = list(np.arange(0, 5.5, 0.5))
@@ -233,7 +232,7 @@ if __name__ == "__main__":
     model = SingleFromConstructorIL(investors_portfolio=investors_portfolio,
                             mortgage=mortgage,
                             real_estate_property=property,
-                            years_to_exit=30,
+                            years_to_exit=7,
                             average_interest_in_exit={mortgage.tracks[0].__class__: mortgage.tracks[0].interest_rate},
                             mortgage_advisor_cost=6000,
                             appraiser_cost=2000,
@@ -255,8 +254,7 @@ if __name__ == "__main__":
                             contractor_payment_distribution=[0.5, 0, 0.5],
                             management_fees_percentage=0
                             )
-
-    investors_portfolio.plot_maximum_property_price_vs_total_available_equity()
+    # investors_portfolio.plot_maximum_property_price_vs_total_available_equity()
     # 27820
     print(f"Price per meter: {model.calculate_price_per_meter()}")
     print(f"Loan to cost: {model.calculate_loan_to_cost()}")
@@ -302,3 +300,5 @@ if __name__ == "__main__":
     print(f"calculate_annual_property_management_fees: {model.calculate_annual_property_management_fees()}")
     print(f"calculate_net_profit: {model.calculate_net_profit()}")
     print(f"calculate_capital_gain_tax: {model.calculate_capital_gain_tax()}")
+
+    print(model.get_annual_property_remain_balances())
